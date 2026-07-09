@@ -22,19 +22,37 @@ async def delay(base=None):
 
 async def login(page, email, password):
     print("🔐 Logging into Naukri...")
-    await page.goto("https://www.naukri.com/nlogin/login", wait_until="domcontentloaded")
-    await page.wait_for_timeout(2000)
+    
+    # 1. Use "networkidle" instead of "domcontentloaded" to let anti-bot trackers settle
+    await page.goto("https://www.naukri.com/nlogin/login", wait_until="networkidle")
+    await page.wait_for_timeout(3000)
 
-    await page.fill("#usernameField", email)
-    await page.fill("#passwordField", password)
-    await page.click("button[type='submit']")
-    await page.wait_for_timeout(4000)
-    print("✅ Naukri logged in")
+    try:
+        # 2. Explicitly wait for the username selector to appear on screen before typing
+        await page.wait_for_selector("#usernameField", timeout=15000)
+        
+        # 3. Simulate human-like staggered delays instead of instant machine filling
+        await page.fill("#usernameField", email)
+        await page.wait_for_timeout(random.randint(500, 1500))
+        await page.fill("#passwordField", password)
+        await page.wait_for_timeout(random.randint(500, 1500))
+        
+        await page.click("button[type='submit']")
+        
+        # 4. Wait to ensure we transitioned past the login wall onto the dashboard
+        await page.wait_for_url("**/mnjhome**", timeout=15000)
+        print("✅ Naukri logged in successfully")
+        
+    except PWTimeout:
+        print("❌ Login timed out. Naukri triggered a CAPTCHA or location verification check.")
+        # Take a screenshot to inspect later in your GitHub Action artifacts
+        await page.screenshot(path="login_error_fallback.png")
+        raise Exception("Naukri Login Failed due to bot protection wall.")
 
 
 async def apply_to_job(page, url, title, company, location):
     if already_applied(url):
-        print(f"  ⏭️  Skip (already applied): {title}")
+        print(f"    ⏭️  Skip (already applied): {title}")
         return False
 
     try:
@@ -47,14 +65,13 @@ async def apply_to_job(page, url, title, company, location):
             # Try text-based match
             apply_btn = await page.query_selector("text=Apply")
         if not apply_btn:
-            print(f"  ❌ No apply button: {title}")
+            print(f"    ❌ No apply button: {title}")
             return False
 
         await apply_btn.click()
         await page.wait_for_timeout(3000)
 
         # Handle any modal / popup that appears
-        # Some jobs show a "Chatbot" apply form — handle text inputs
         inputs = await page.query_selector_all("input[type='text'], input[type='number'], textarea")
         for inp in inputs:
             try:
@@ -86,26 +103,40 @@ async def apply_to_job(page, url, title, company, location):
             await page.wait_for_timeout(2000)
 
         log_applied(url, title, company, location, PLATFORM)
-        print(f"  ✅ Applied: {title} @ {company}")
+        print(f"    ✅ Applied: {title} @ {company}")
         await delay()
         return True
 
     except PWTimeout:
-        print(f"  ⏱️ Timeout: {title}")
+        print(f"    ⏱️ Timeout: {title}")
         return False
     except Exception as e:
-        print(f"  ⚠️ Error: {title} — {e}")
+        print(f"    ⚠️ Error: {title} — {e}")
         return False
 
 
 async def run(email, password):
     count = 0
     async with async_playwright() as p:
-        browser = await p.chromium.launch(**get_browser_options())
-        context = await browser.new_context(viewport={"width": 1280, "height": 800})
+        # Pull standard config arguments
+        browser_args = get_browser_options()
+        
+        # 5. Inject a realistic, human User-Agent string so GitHub doesn't scream 'Automated Bot'
+        context_args = {
+            "viewport": {"width": 1280, "height": 800},
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+        }
+        
+        browser = await p.chromium.launch(**browser_args)
+        context = await browser.new_context(**context_args)
         page = await context.new_page()
 
-        await login(page, email, password)
+        try:
+            await login(page, email, password)
+        except Exception as login_err:
+            print(f"💥 Execution halted: {login_err}")
+            await browser.close()
+            return 0
 
         for keyword in cfg["keywords"]:
             if count >= LIMITS["max_per_platform"]:
@@ -117,7 +148,6 @@ async def run(email, password):
 
                 kw = keyword.replace(" ", "-").lower()
                 loc = location.lower()
-                # Naukri URL: /react-developer-jobs-in-pune  or  /react-developer-jobs
                 if loc == "remote":
                     search_url = f"https://www.naukri.com/{kw}-jobs?jobAge=7&experience=0"
                 else:
@@ -128,13 +158,12 @@ async def run(email, password):
                     await page.goto(search_url, wait_until="domcontentloaded")
                     await page.wait_for_timeout(3000)
 
-                    # Scroll to load listings
                     for _ in range(2):
                         await page.keyboard.press("End")
                         await page.wait_for_timeout(1000)
 
                     job_cards = await page.query_selector_all("article.jobTuple, div.srp-jobtuple-wrapper")
-                    print(f"   Found {len(job_cards)} listings")
+                    print(f"    Found {len(job_cards)} listings")
 
                     for card in job_cards:
                         if count >= LIMITS["max_per_platform"]:
@@ -162,7 +191,7 @@ async def run(email, password):
                     await asyncio.sleep(LIMITS["delay_between_searches"])
 
                 except Exception as e:
-                    print(f"  ⚠️ Search error: {e}")
+                    print(f"    ⚠️ Search error: {e}")
                     continue
 
         await browser.close()
