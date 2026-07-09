@@ -26,6 +26,14 @@ applicant:
   willing_to_relocate: "Yes"
   current_location: "Chennai"
 
+cover_note: |
+ In my current role, I own architecture and technical decisions across a multi-phase modernization program,
+ while also building the team itself — onboarding new engineers, establishing coding and code-review standards,
+ and coaching junior developers through complex delivery. Across three consecutive program phases, 
+ I've held delivery to earned-value targets (EPI/SPI of 1.0) while absorbing 50%+ scope increases each time,
+ and grown delivery margins by 5–14 percentage points through team resourcing decisions — outcomes 
+ I attribute directly to the strength and structure of the engineering team, not just process discipline.
+
 
 
 limits:
