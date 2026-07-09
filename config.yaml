@@ -13,26 +13,20 @@ filters:
     - "Full Time"
     
 
-resume_path: "./resume/Nawazish_Bidiwale_Fullstack.pdf"
+resume_path: "./resume/Viswanathan_Resume_New-2703.docx"
 
 applicant:
-  name: "Nawazish Majid Bidiwale"
-  email: "nawazishb2004@gmail.com"
-  phone: "9763603940"
-  expected_ctc: "500000"       # 5 LPA
-  current_ctc: "0"
-  notice_period: "0"
+  name: "Viswanathan"
+  email: "viswa.java88@gmail.com"
+  phone: "9094951220"
+  expected_ctc: "4000000"       
+  current_ctc: "3100000"
+  notice_period: "60"
   experience_years: "0"
   willing_to_relocate: "Yes"
-  current_location: "Pune"
+  current_location: "Chennai"
 
-cover_note: |
-  I'm a final-year CSE student and full-stack developer with hands-on internship
-  experience building production-grade applications at Roxiler Systems using
-  Next.js, React, TypeScript, TanStack Query, and Node.js. I've worked across
-  the stack — from designing RESTful APIs with Nest.js and PostgreSQL to building
-  layered, testable UI architectures. I'm an immediate joiner looking for a
-  full-time or internship role where I can contribute from day one.
+
 
 limits:
   max_per_platform: 30         # max applications per platform per run
