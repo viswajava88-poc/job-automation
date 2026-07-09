@@ -25,7 +25,7 @@ async def login(page, email, password):
     
     # 1. Use "networkidle" instead of "domcontentloaded" to let anti-bot trackers settle
     await page.goto("https://www.naukri.com/nlogin/login", wait_until="networkidle")
-    await page.wait_for_timeout(3000)
+    await page.wait_for_timeout(3000)    
 
     try:
         # 2. Explicitly wait for the username selector to appear on screen before typing
