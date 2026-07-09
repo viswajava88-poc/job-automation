@@ -1,22 +1,17 @@
 keywords:
-  - "React Developer"
-  - "Frontend Developer"
-  - "Next.js Developer"
-  - "Full Stack Developer"
-  - "Software Development Engineer"
-  - "SDE"
-  - "Node.js Developer"
-
+  - "Engineering Manager"
+  - "Java Technical Manager"
+  - "Delivery Manage"
+  
 filters:
   locations:
     - "Remote"
-    - "Pune"
-    - "Mumbai"
+    - "Chennai"
     - "Bangalore"
-  experience: "0-1"           # fresher / 0-1 year
+  experience: "14-18"           # fresher / 0-1 year
   job_type:
     - "Full Time"
-    - "Internship"
+    
 
 resume_path: "./resume/Nawazish_Bidiwale_Fullstack.pdf"
 
